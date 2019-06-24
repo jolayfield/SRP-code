@@ -1,0 +1,78 @@
+     1	19:28	cd Astrochemical/pack/l-c3h3+/
+     2	19:28	cd files/
+     3	19:28	vi fort.9903.toread.017
+     4	19:31	cd
+     5	19:31	cd new-fundamental/
+     6	19:31	cd l-c3h3+/
+     7	19:31	cd PM3/
+     8	19:31	cd intder/
+     9	19:31	vi intder.in
+    10	19:31	vi ../anpass/fort.9903
+    11	19:32	vi ~/Astrochemical/pack/l-c3h3+/files/l-c3h3.inp4intder.truemin.B
+    12	19:32	vi ~/Astrochemical/pack/l-c3h3+/files/l-c3h3.inp4intder.truemin.A
+    13	23:46	top
+    14	0:15	change-time.sh 256696 257021 201906191750
+    15	0:16	qstat -j 256696
+    16	0:20	cd fit-fcs/c-c4/
+    17	0:20	grep RMSD */best*
+    18	8:52	cd test_Katie/
+    19	8:56	vi ovalene.inp
+    20	8:56	mndo99 < ovalene.inp > ovalene.out
+    21	9:01	vi ovalene.out
+    22	9:12	cd INITIALPARMS/
+    23	9:12	vi om3ortho.txt
+    24	9:13	vi odm3ortho.txt
+    25	9:17	cd ..
+    27	9:40	vi funcs.py
+    28	9:52	python funcs.py
+    29	12:44	qqutoa -u stol8623
+    30	12:44	/sbin/qquota
+    31	12:44	locate qquota
+    32	12:46	qstat -u layfield
+    33	12:46	qquota -u stol8623
+    34	12:47	which qquota
+    35	12:48	source .tcshrc
+    36	12:48	vi .sge_qstat
+    37	12:49	qquota -u *
+    38	12:49	vi .tcshrc
+    39	12:53	unalias qquota
+    40	12:53	quota
+    41	12:54	vi .sge_qquota
+    42	12:54	qquota
+    43	13:16	qquota -u \*
+    44	13:16	qstat -g c
+    45	13:17	qstat
+    46	13:18	qstat -j 257788
+    47	14:11	qme
+    48	14:12	su
+    49	14:15	exit
+    51	14:17	mkdir for_Katie/
+    52	14:17	mkdir for_Katie/parm-opt
+    53	14:17	cd for_Katie/parm-opt/
+    54	14:17	cp ../../test_Katie/
+    55	14:17	cp ../../test_Katie/parm-opt.py .
+    57	14:20	cp ../../test_Katie/main.inp .
+    58	14:21	cp ../../test_Katie/c3h2* .
+    59	14:21	cp -r ../../test_Katie/INITIALPARMS/ .
+    61	17:36	clear
+    63	17:37	git clone https://github.com/jolayfield/SRP-code.git
+    64	17:38	cd SRP-code/
+    66	17:38	cp ../test_Katie/main.inp .
+    68	17:38	cp ~/Astrochemical/pack/cC3H-/cC3H-* .
+    69	17:39	mv cC3H-energies.dat c-c3h-energies.dat
+    70	17:39	mv cC3H-geom.dat c-c3h-geom.dat
+    72	17:39	wc -l c-c3h-energies.dat
+    74	17:40	ipython
+    75	17:44	xmgrace c-c3h-energies.dat
+    76	17:45	vi c-c3h-geom.dat
+    78	17:46	vi geom.xyz
+    79	17:46	molden geom.xyz
+    82	17:47	cp -r ~/test_Katie/INITIALPARMS/ .
+    94	17:51	vi main.inp
+    96	17:51	grep GEOM c-c3h-geom.dat | wc -l
+    97	17:51	vi mol0.out
+    99	17:52	python parm-opt.py
+   100	17:53	ls
+   101	17:53	vi parm-opt.py
+   102	17:53	display test.png
+   103	17:54	history > hist.dat

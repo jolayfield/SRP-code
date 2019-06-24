@@ -1,0 +1,17 @@
+27   ! # of parameters
+PM3  ! Electronic structure method
+1    ! # of molecules 
+4                                                             ! List of numbers of atoms
+-1                                                            ! [MOL 1]  charge
+413  						              ! [MOL 1]  # of structures
+c-c3h-energies.dat                        ! [MOL 1] file with energies
+c-c3h-geom.dat   1				           	      ! [MOL 1] file with geometries
+h        0.0000000000        0.0000000000       -3.4118348686
+c        0.0000000000        0.0000000000       -1.3606952513
+c        0.0000000000        1.4070998275        0.8236198167
+c        0.0000000000       -1.4070998275        0.8236198167
+2        !  [MOL 1] # of Geometric Parameters to Monitor
+2 1 4    ! Short diagonal
+2 2 3    ! Long  diagonal    
+0
+0

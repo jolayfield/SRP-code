@@ -46,7 +46,7 @@ def write_input (file, n_struc, n_atoms, at_nums, method_num, mol_num, charge):
 
 def read_input(file):
     with open(file) as f_in:
-        lines = list(filter(None, (line.rstrip() for line in f_in))
+        lines = f_in.readlines() 
     n_parms= int(lines[0].split()[0])
     method = lines[1].split()[0]
     method_num = method_dict[method.upper()]
@@ -118,7 +118,7 @@ def calc_fvec():
 
 def read_parms(file):
     with open(file) as f_in:
-            data = list(filter(None, (line.rstrip() for line in f_in))
+            data = f_in.readlines() 
     parm_labels = []
     parm_vals   = []
     for line in data:
@@ -159,12 +159,10 @@ x, flag = leastsq(big_loop, parm_vals,epsfcn=1e-4)
 big_loop(x)
 fvec, energies = calc_fvec()
 print(f'FINAL RMSD= {349.75*627.51*np.sqrt(np.mean(np.square(fvec)))}')
-print(
 
 plt.plot(energies)
 plt.plot(abinitio_energies)
 plt.savefig('test.png')
-#plt.show ()
 
 
 

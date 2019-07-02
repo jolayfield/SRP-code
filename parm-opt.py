@@ -2,9 +2,11 @@ import scipy
 import numpy as np
 import os
 import matplotlib.pyplot as plt
+import sys
+import math
 from scipy.optimize import leastsq
 
-method_dict = {'PM3':-7,'AM1':-2, 'OM1':-5, 'OM2':-6, 'OM3':-8,'ODM2':-22, 'ODM3':-23}
+method_dict = {'PM3':-7,'AM1':-2, 'RM1':-2, 'OM1':-5, 'OM2':-6, 'OM3':-8,'ODM2':-22, 'ODM3':-23}
             
 at_num_dict = {'h':1, 'he':2, 'li':3, 'be':4, 'b':5,'c':6, 'n':7, 'o':8, 'f':9}
 
@@ -49,16 +51,18 @@ def read_input(file):
         lines = f_in.readlines() 
     n_parms= int(lines[0].split()[0])
     method = lines[1].split()[0]
-    method_num = method_dict[method.upper()]
+    method_num = method_dict[method.upper().replace("ORTHO", "")]
     n_molec = int(lines[2].split()[0])
     n_atoms=[]
     charge =[]
     structures=[]
     energy_files=[]
     structure_files = []
+    n_geoms=[]
     at_num=[[] for x in range(n_molec)]
     coords=[[] for x in range(n_molec)]
-    geoms =[[] for x in range(n_molec)]
+    geoms=[[] for x in range(n_molec)]
+    
     
     
     n = 3
@@ -67,7 +71,7 @@ def read_input(file):
         charge.append(int(lines[n+1].split()[0]))  # set the charge on the molecule
         structures.append(int(lines[n+2].split()[0])) # set the number of structures
         energy_files.append(lines[n+3].split()[0])  # set the file to find the energies
-        structure_files.append([lines[n+4].split()[0],int(lines[n+4].split()[1])]) # set the filename for the structures (the second flag is for atomic units = 1 or angstroms =0)
+        structure_files.append([lines[n+4].split()[0],int(lines[n+4].split()[1])])# set the filename for the structures (the second flag is for atomic units = 1 or angstroms =0)
         if (structure_files[mol][1] == 1):
             scale = 0.529
         else:
@@ -77,14 +81,67 @@ def read_input(file):
             check = np.array(line[1:],dtype=float)
             at_num[mol].append(at_num_dict[line[0].lower()])
             coords[mol].append(np.array([x*scale for x in check]))
-        n += n_atoms[mol]+5
+        n_geoms.append(int(lines[n+5+n_atoms[mol]].split()[0])) #set the number of geometry calculations
+        for geom in range(n_geoms[mol]):
+            geoms[mol].append(lines[n+6+n_atoms[mol]+geom].split())
+        n += n_atoms[mol]+n_geoms[mol]+6
         
-    return method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords
+    return method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms
 
 def run_mndo(mol_num):
     os.system(f'mndo99 < mol{mol_num}.inp > mol{mol_num}.out')
     os.system(f'mndo99 < opt{mol_num}.inp > opt{mol_num}.out')
     
+def read_opt(mol_num):
+    intgeom = []
+    optgeom = []
+    with open(f'opt{mol_num}.out','r') as outfile:
+        optlines = outfile.readlines()
+    for n,line in enumerate(optlines):
+        if "INPUT GEOMETRY" in line:
+            for atoms in range(n_atoms[0]):
+                m = optlines[n+atoms+6].strip()
+                o = m.split()[2::2]
+                intgeom.append(o)   
+        if "FINAL CARTESIAN GRADIENT NORM" in line:
+            for atoms in range(n_atoms[0]):
+                z = optlines[n+atoms+8].strip()
+                y = z.split()[2::2]
+                optgeom.append(y)
+    intgeom = np.array(intgeom).astype(float)
+    optgeom = np.array(optgeom).astype(float)
+    return intgeom, optgeom
+    
+def comp_geoms(n_molec):
+    return_geoms = [] 
+    for mol in range(n_molec):
+        intgeom, optgeom = read_opt(mol)
+        for geom in geoms[mol]:
+            if geom[0] == 'bond':
+                at_bond = ' '.join(map(str, geom))
+                dist1 = np.linalg.norm(intgeom[int(geom[1])-1]-intgeom[int(geom[2])-1])
+                dist4 = np.linalg.norm(optgeom[int(geom[1])-1]-optgeom[int(geom[2])-1])
+                diff1 = dist1-dist4
+                return_geoms.append(diff1)
+                print(f'{at_bond} {dist1:.4} {dist4:.4} {diff1:.4}') #how many decimal places?
+            if geom[0] == 'angle':    
+                at_ang = ' '.join(map(str, geom))
+                dot1 = np.dot((intgeom[int(geom[1])-1]-intgeom[int(geom[2])-1]), (intgeom[int(geom[3])-1]-intgeom[int(geom[2])-1]))
+                dist2 = np.linalg.norm(intgeom[int(geom[1])-1]-intgeom[int(geom[2])-1])
+                dist3 = np.linalg.norm(intgeom[int(geom[3])-1]-intgeom[int(geom[2])-1])
+                cos1 = dot1/(dist2*dist3)
+                angle1 = (math.acos(cos1))*57.295779513
+                dot2 = np.dot((optgeom[int(geom[1])-1]-optgeom[int(geom[2])-1]), (optgeom[int(geom[3])-1]-optgeom[int(geom[2])-1]))
+                dist5 = np.linalg.norm(optgeom[int(geom[1])-1]-optgeom[int(geom[2])-1])
+                dist6 = np.linalg.norm(optgeom[int(geom[3])-1]-optgeom[int(geom[2])-1])
+                cos2 = dot2/(dist5*dist6)
+                angle2 = (math.acos(cos2))*57.295779513
+                diff2 = angle1-angle2
+                return_geoms.append(diff2)
+                print(f'{at_ang} {angle1:.4} {angle2:.4} {diff2:.4}')
+    return np.array(return_geoms)
+                
+
 def read_energies(n_molec):  
     energies=[]
     for mol in range(n_molec):
@@ -114,6 +171,8 @@ def calc_fvec():
         
     energies = read_energies(n_molec)
     fvec = (energies-abinitio_energies)
+    fvec = np.hstack((fvec,comp_geoms(n_molec)))
+    print(len(fvec))
     return fvec, energies
 
 def read_parms(file):
@@ -145,10 +204,10 @@ def clear_files():
     os.system('rm mol* fort* opt*')   
 
 
-#def main():
-method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords = read_input('main.inp')
+
+method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms = read_input('main.inp')
 abinitio_energies = read_abinito(energy_files)
-parm_labels, parm_vals = read_parms('INITIALPARMS/pm3.txt')
+parm_labels, parm_vals = read_parms(sys.argv[1])
 for mol in range(n_molec):
     write_input(structure_files[mol],
                 structures[mol],

@@ -1,0 +1,305 @@
+
+
+
+ PROGRAM MNDO2005.
+ VERSION 7.0 OF 4 AUGUST 2005.
+
+ COPYRIGHT BY WALTER THIEL,
+ MAX-PLANCK-INSTITUT FUER KOHLENFORSCHUNG,
+ D-45470 MUELHEIM, GERMANY.
+
+
+ ***** STANDARD INPUT USING KEYWORDS *****
+
+ IOP    =   -7     JOP    =    0     IGEOM  =    1     IFORM  =    1     IPAROK =    1
+ KHARGE =    0     NPRINT =   -4
+
+
+ ***********************************************************************
+ * INPUT OF OPTIONS VIA KEYWORDS
+ * NUMBER OF MNDO97 KEYWORDS FOUND:  7
+ * MOPAC KEYWORDS NOT FOUND: IMOPAC=-1
+ ***********************************************************************
+
+
+
+ *** OPTIONS FROM THE FIRST LINE OF INPUT    ***
+ *** DEFINED EITHER EXPLICITLY OR BY DEFAULT ***
+
+ LIMIT  =    0     IOP    =   -7     JOP    =    0     IGEOM  =    1     IFORM  =    1
+ NEXMOL =    1     MPLIB  =    0     IEF    =    0     IDIIS  =    0     INREFD =    0
+ IPAROK =    1     MMINP  =    0     NMR    =    0     NSAV7  =    0     NSAV8  =    0
+ NSAV9  =    0     NSAV13 =    0     NSAV15 =    0     NSAV16 =    0     IMMOK  =    0
+ IHBOND =    0     IFLD1  =    0     IFLD2  =    0     IFLD3  =    0     ICUTS  =    0
+ ICUTG  =    0     IEXBAS =    0     ICOSMO =    0     IPSANA =    0     IMMDP  =   -1
+ INAC   =    0
+
+
+
+ PM3    
+
+ GEOMETRY OPTIMIZATION FOR ENERGY MINIMUM
+
+ INPUT IN CARTESIAN COORDINATES
+
+ INPUT OF MOLECULAR DATA IN FREE FORMAT
+
+
+
+ EXTERNAL PARAMETERS ARE READ FROM FILE NB14.
+
+  PARAMETER TYPE     ELEMENT(S)     PARAMETER
+
+      USS              H         -12.65364827
+      ZS               H           0.98361410
+      BETAS            H          -5.16851153
+      ALP              H           3.33849423
+      GSS              H          17.56121057
+      FN11             H           1.11239188
+      FN21             H           5.08704961
+      FN31             H           1.53289679
+      FN12             H          -1.00149918
+      FN22             H           6.17405074
+      FN32             H           1.58376003
+      USS              C         -46.58566473
+      UPP              C         -35.69967059
+      ZS               C           1.45558716
+      ZP               C           1.75767935
+      BETAS            C         -11.86298594
+      BETAP            C          -9.32499867
+      ALP              C           2.76782263
+      GSS              C           8.66805504
+      GPP              C          11.33483181
+      GSP              C           9.74980733
+      GP2              C           9.03074477
+      HSP              C           2.13560085
+      FN11             C           0.05959240
+      FN21             C           7.49547912
+      FN31             C           1.50829460
+      FN12             C           0.04832655
+      FN22             C           6.12098250
+      FN32             C           0.82773541
+
+
+
+ *** OPTIONS FROM THE SECOND LINE OF INPUT   ***
+ *** DEFINED EITHER EXPLICITLY OR BY DEFAULT ***
+
+
+ MAXEND = 9999     MAXLIN =    4     MAXRTL = 9999     ISCF   =    6     IPLSCF =    6
+ MIDDLE =    0     IPRINT =    0     KPRINT =    0     LPRINT =    0     MPRINT =    0
+ JPRINT =    0     IPREC  =    1     ICONV  =    0     IHESS  =    0     IDFP   =    0
+ NREPET =    3     LINITG =   10     LCONVG =   10     LGDUM  =    0     IHDLC1 =    0
+ IHDLC2 =    0     IHDLC3 =    0     INGEOM =    0     INTDIR =    0     LINDMS =    0
+ LINDIA =    0     LINFRG =    0     INPFRG =    0     INP21  =    0     INP22  =    0
+ INP23  =    0     INP24  =    0     INP25  =    0     IATERG =    1
+
+
+
+                                                                                 
+ Molecule 1 Optimization                                                         
+
+
+     INPUT GEOMETRY
+
+
+      ATOM      ATOMIC              X-COORDINATE         Y-COORDINATE         Z-COORDINATE
+     NUMBER     NUMBER               (ANGSTROMS)          (ANGSTROMS)          (ANGSTROMS)
+
+        1          6                   0.00000 *            0.00000 *           -0.88600 *
+        2          6                   0.00000 *            0.66118 *            0.36706 *
+        3          6                   0.00000 *           -0.66118 *            0.36706 *
+        4          1                   0.00000 *            1.59238 *            0.90417 *
+        5          1                   0.00000 *           -1.59238 *            0.90417 *
+
+
+
+     **********
+
+     *  VARIABLES TO BE OPTIMIZED, OF WHICH THERE ARE  15
+
+
+
+     INITIAL INTERATOMIC DISTANCES (ANGSTROMS)
+
+
+             1           2           3           4           5
+ ----------------------------------------------------------------
+   1      0.00000
+   2      1.41680     0.00000
+   3      1.41680     1.32235     0.00000
+   4      2.39591     1.07500     2.31668     0.00000
+   5      2.39591     2.31668     1.07500     3.18477     0.00000
+
+
+
+ MOLECULAR CHARGE         0
+ NUMBER OF ELECTRONS     14
+ DOUBLY OCCUPIED MOS      7
+
+
+ *** OPTIONS FOR THE MOLECULE UNDER STUDY    ***
+ *** DEFINED EITHER EXPLICITLY OR BY DEFAULT ***
+
+ KHARGE =    0     IMULT  =    0     KTRIAL =    0     KGEOM  =    0     IPUBO  =    0
+ IUHF   =    0     KITSCF =  200     NPRINT =   -4     IFAST  =    0     IDIAG  =    0
+ KSYM   =    0     NUMSYM =    0     KCI    =    0     NSTART =    4     NSTEP  =    4
+
+ CHKANA: IPSANA =  0, ISKPA =  0, ISKPAF =  0
+
+
+
+ GEOMETRY OPTIMIZATION FOR ENERGY MINIMUM
+                                                                                 
+ Molecule 1 Optimization                                                         
+
+ INITIAL GEOMETRY, TOTAL TIME =      0.009 , HEAT =   219.49561 , GNORM =        3.07148
+
+
+ *****
+
+ FUNCTION VALUE   219.49561     WILL NOT BE REPLACED BY VALUE   220.14845     FOUND IN RESTART PROCEDURE.
+
+
+ AT THE BEGINNING OF CYCLE    1  THE FUNCTION VALUE IS    219.49561
+ THE CURRENT POINT IS ...
+
+   I         1           2           3           4           5           6           7           8           9          10
+ X(I)     0.00000     0.00000    -0.88600     0.00000     0.66118     0.36706     0.00000    -0.66118     0.36706     0.00000
+ G(I)     0.00000     0.00000    -1.50647     0.00000     1.76674     0.61193     0.00000    -1.76674     0.61193     0.00000
+
+   I        11          12          13          14          15
+ X(I)     1.59238     0.90417     0.00000    -1.59238     0.90417
+ G(I)     0.25778     0.14130     0.00000    -0.25778     0.14130
+
+ ANGLE COSINE   =  0.7452E-01
+ ALPHA.P.G TEST =  0.1385E-01
+ GRADIENT NORM  =  0.3071E+01
+
+ TERMINATION TESTS ...
+ FUNCTION EVALUATIONS =   4
+ RELATIVE CHANGE IN X = 0.2740E-03
+ ABSOLUTE CHANGE IN F = 0.9158E-04
+ GRADIENT NORM        = 0.3274E+01
+
+ TEST ON F SATISFIED
+
+ TOTAL TIME             0.010 SECONDS
+
+
+ *****
+
+ AT THE BEGINNING OF CYCLE    2  THE FUNCTION VALUE IS    219.49551
+ THE CURRENT POINT IS ...
+
+   I         1           2           3           4           5           6           7           8           9          10
+ X(I)    -0.00000    -0.00000    -0.88600    -0.00000     0.66117     0.36706    -0.00000    -0.66117     0.36706    -0.00000
+ G(I)     0.00000     0.01901    -1.48606     0.00000     2.02785     0.82474     0.00000    -1.80688     0.62932     0.00000
+
+   I        11          12          13          14          15
+ X(I)     1.59234     0.90337    -0.00000    -1.59234     0.90408
+ G(I)    -0.03250    -0.07248     0.00000    -0.20749     0.10448
+
+ ANGLE COSINE   =  0.2172E+00
+ ALPHA.P.G TEST =  0.5726E-03
+
+ TEST ON ALPHA.P.G SATISFIED
+
+ TOTAL TIME             0.010 SECONDS
+
+
+
+                                                                                     
+     Molecule 1 Optimization                                                         
+
+
+
+     SCF HEAT OF FORMATION      219.49551 KCAL/MOL
+     SCF BINDING ENERGY         -17.23162 EV
+     SCF TOTAL ENERGY          -382.42658 EV
+     ELECTRONIC ENERGY         -888.63371 EV
+     NUCLEAR ENERGY             506.20713 EV
+     IONIZATION ENERGY           10.26218 EV
+     SCF CYCLES                   2
+
+
+
+     NET ATOMIC CHARGES AND ORBITAL POPULATIONS.
+
+     ATOM    I        CHARGE      DENSITY        S          PX          PY          PZ
+
+      C      1       -0.08920     4.08920     1.81944     0.44593     0.88330     0.94053
+      C      2       -0.26778     4.26778     1.35034     0.77704     1.01060     1.12979
+      C      3       -0.26774     4.26774     1.35044     0.77703     1.01052     1.12976
+      H      4        0.31234     0.68766     0.68766
+      H      5        0.31239     0.68761     0.68761
+
+
+
+     DIPOLE              X           Y           Z         TOTAL
+
+     POINT-CHARGE     0.00000    -0.00051     2.14725     2.14725
+     HYBRID          -0.00000     0.00031     1.84786     1.84786
+     SUM             -0.00000    -0.00020     3.99511     3.99511
+
+
+
+                                                                                 
+ Molecule 1 Optimization                                                         
+
+
+
+ OPTIMIZATION FINISHED AFTER   1 CYCLES AND   5 FUNCTION EVALUATIONS
+
+ FINAL HEAT OF FORMATION      219.49551 KCAL/MOL
+
+
+
+ FINAL VARIABLES AND GRADIENTS
+
+
+   I         1           2           3           4           5           6           7           8           9          10
+ X(I)    -0.00000    -0.00000    -0.88600    -0.00000     0.66117     0.36706    -0.00000    -0.66117     0.36706    -0.00000
+ G(I)     0.00000     0.01901    -1.48606     0.00000     2.02785     0.82474     0.00000    -1.80688     0.62932     0.00000
+
+   I        11          12          13          14          15
+ X(I)     1.59234     0.90337    -0.00000    -1.59234     0.90408
+ G(I)    -0.03250    -0.07248     0.00000    -0.20749     0.10448
+
+
+
+ FINAL OPTIMIZED GRADIENT NORM                3.27448
+
+ FINAL CARTESIAN GRADIENT NORM                3.27448
+
+
+
+
+      ATOM      ATOMIC              X-COORDINATE         Y-COORDINATE         Z-COORDINATE
+     NUMBER     NUMBER               (ANGSTROMS)          (ANGSTROMS)          (ANGSTROMS)
+
+        1          6                  -0.00000 *           -0.00000 *           -0.88600 *
+        2          6                  -0.00000 *            0.66117 *            0.36706 *
+        3          6                  -0.00000 *           -0.66117 *            0.36706 *
+        4          1                  -0.00000 *            1.59234 *            0.90337 *
+        5          1                  -0.00000 *           -1.59234 *            0.90408 *
+
+
+
+ INTERATOMIC DISTANCES (ANGSTROMS)
+
+
+
+             1           2           3           4           5
+ ----------------------------------------------------------------
+   1      0.00000
+   2      1.41679     0.00000
+   3      1.41679     1.32234     0.00000
+   4      2.39528     1.07457     2.31645     0.00000
+   5      2.39581     2.31661     1.07493     3.18468     0.00000
+
+
+
+ COMPUTATION TIME                 0.006 SECONDS
+
+

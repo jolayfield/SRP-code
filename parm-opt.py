@@ -110,6 +110,7 @@ def read_opt(mol_num):
                 optgeom.append(y)
     intgeom = np.array(intgeom).astype(float)
     optgeom = np.array(optgeom).astype(float)
+    outfile.close()
     return intgeom, optgeom
     
 def comp_geoms(n_molec):
@@ -170,9 +171,8 @@ def calc_fvec():
         run_mndo(mol)
         
     energies = read_energies(n_molec)
-    fvec = (energies-abinitio_energies)
+    fvec = (energies-abinitio_energies)*627.51*349.75
     fvec = np.hstack((fvec,comp_geoms(n_molec)))
-    print(len(fvec))
     return fvec, energies
 
 def read_parms(file):
@@ -195,7 +195,7 @@ def write_parms(X):
 def big_loop(X):
     write_parms(X)  # Write the current set of parameters to fort.14
     fvec, energies = calc_fvec()
-    print  ('rmsd  ' + str(627.51*349.75*np.sqrt(np.mean(np.square(fvec)))))
+    print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
 #      (f'RMSD {627.51*349.75*np.sqrt(np.mean(np.square(fvec)))}')
     return fvec
 
@@ -217,7 +217,7 @@ for mol in range(n_molec):
 x, flag = leastsq(big_loop, parm_vals,epsfcn=1e-4)
 big_loop(x)
 fvec, energies = calc_fvec()
-print(f'FINAL RMSD= {349.75*627.51*np.sqrt(np.mean(np.square(fvec)))}')
+print(f'FINAL RMSD= {np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))}')
 
 plt.plot(energies)
 plt.plot(abinitio_energies)

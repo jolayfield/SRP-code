@@ -25,10 +25,10 @@ def write_input (file, n_struc, n_atoms, at_nums, method_num, mol_num, charge):
     for structure in range(n_struc):
         if(structure == 0):
                     opt_file = open(f'opt{mol_num}.inp','w')
-                    opt_file.write(f'iparok=1 nprint=-4 kharge={charge} iform=1 iop={method_num} jop=0 igeom=1\n')
+                    opt_file.write(f'iparok=1 nsav15=9 nprint=-4 kharge={charge} iform=1 iop={method_num} jop=0 igeom=1\n')
                     opt_file.write(f'Molecule {mol_num} Optimization\n\n')
         n +=1
-        write_file.write(f'iparok=1 nprint=-4 kharge={charge} iform=1 iop={method_num} jop=-1 igeom=1\n')
+        write_file.write(f'iparok=1 nsav15=9 nprint=-4 kharge={charge} iform=1 iop={method_num} jop=-1 igeom=1\n')
         write_file.write("Molecule #"+str(structure)+"\n\n")
         for atom in range(n_atoms):
             if(structure == 0):
@@ -90,7 +90,9 @@ def read_input(file):
 
 def run_mndo(mol_num):
     os.system(f'mndo99 < mol{mol_num}.inp > mol{mol_num}.out')
+    os.system(f'mv fort.15 mol{mol_num}.aux')
     os.system(f'mndo99 < opt{mol_num}.inp > opt{mol_num}.out')
+    os.system(f'mv fort.15 opt{mol_num}.aux')
     
 def read_opt(mol_num):
     intgeom = []
@@ -99,12 +101,12 @@ def read_opt(mol_num):
         optlines = outfile.readlines()
     for n,line in enumerate(optlines):
         if "INPUT GEOMETRY" in line:
-            for atoms in range(n_atoms[0]):
+            for atoms in range(n_atoms[mol]):
                 m = optlines[n+atoms+6].strip()
                 o = m.split()[2::2]
                 intgeom.append(o)   
         if "FINAL CARTESIAN GRADIENT NORM" in line:
-            for atoms in range(n_atoms[0]):
+            for atoms in range(n_atoms[mol]):
                 z = optlines[n+atoms+8].strip()
                 y = z.split()[2::2]
                 optgeom.append(y)
@@ -149,7 +151,7 @@ def read_energies(n_molec):
         energy = []
         with open(f'mol{mol}.out','r') as f:
             data = f.readlines()
-        for line in data:
+        for n,line in enumerate(data):
             if "TOTAL ENERGY" in line:
                 energy.append(float(line.split()[3]))
         energies = np.hstack((energies,((np.array(energy)-np.min(energy))/27.2114)))
@@ -195,8 +197,11 @@ def write_parms(X):
 def big_loop(X):
     write_parms(X)  # Write the current set of parameters to fort.14
     fvec, energies = calc_fvec()
-    print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
-#      (f'RMSD {627.51*349.75*np.sqrt(np.mean(np.square(fvec)))}')
+    if np.sum(n_geoms) > 0:
+        print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
+    else:
+        print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec)))))
+#      (f'RMSD {627.51*349.75*np.sqrt(np.mean(np.square(fvec)))}')   
     return fvec
 
 
@@ -217,8 +222,10 @@ for mol in range(n_molec):
 x, flag = leastsq(big_loop, parm_vals,epsfcn=1e-4)
 big_loop(x)
 fvec, energies = calc_fvec()
-print(f'FINAL RMSD= {np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))}')
-
+if np.sum(n_geoms) > 0:
+    print  ('FINAL RMSD ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
+else:
+    print  ('FINAL RMSD  ' + str(np.sqrt(np.mean(np.square(fvec)))))
 plt.plot(energies)
 plt.plot(abinitio_energies)
 plt.savefig('test.png')

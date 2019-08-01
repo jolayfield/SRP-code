@@ -59,9 +59,11 @@ def read_input(file):
     energy_files=[]
     structure_files = []
     n_geoms=[]
+    n_weights=[]
     at_num=[[] for x in range(n_molec)]
     coords=[[] for x in range(n_molec)]
     geoms=[[] for x in range(n_molec)]
+    weights=[[] for x in range(n_molec)]
     
     
     
@@ -85,8 +87,12 @@ def read_input(file):
         for geom in range(n_geoms[mol]):
             geoms[mol].append(lines[n+6+n_atoms[mol]+geom].split())
         n += n_atoms[mol]+n_geoms[mol]+6
+        n_weights.append(int(lines[n].split()[0]))
+        for weight in range(n_weights[mol]):
+            weights[mol].append(lines[n+1+weight].split())
+        n += n_weights[mol]+1
         
-    return method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms
+    return method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms, n_weights, weights
 
 def run_mndo(mol_num):
     os.system(f'mndo99 < mol{mol_num}.inp > mol{mol_num}.out')
@@ -101,12 +107,12 @@ def read_opt(mol_num):
         optlines = outfile.readlines()
     for n,line in enumerate(optlines):
         if "INPUT GEOMETRY" in line:
-            for atoms in range(n_atoms[mol]):
+            for atoms in range(n_atoms[mol_num]):
                 m = optlines[n+atoms+6].strip()
                 o = m.split()[2::2]
                 intgeom.append(o)   
         if "FINAL CARTESIAN GRADIENT NORM" in line:
-            for atoms in range(n_atoms[mol]):
+            for atoms in range(n_atoms[mol_num]):
                 z = optlines[n+atoms+8].strip()
                 y = z.split()[2::2]
                 optgeom.append(y)
@@ -152,7 +158,7 @@ def read_energies(n_molec):
         with open(f'mol{mol}.out','r') as f:
             data = f.readlines()
         for n,line in enumerate(data):
-            if "TOTAL ENERGY" in line:
+            if "SCF TOTAL ENERGY" in line:
                 energy.append(float(line.split()[3]))
         energies = np.hstack((energies,((np.array(energy)-np.min(energy))/27.2114)))
     return np.array(energies)
@@ -168,13 +174,28 @@ def read_abinito(energy_files):
         energies = np.hstack((energies,((np.array(energy)-np.min(energy)))))
     return np.array(energies)
 
-def calc_fvec():
+def calc_fvec(structures, weights, n_geoms, geoms):
     for mol in range(n_molec):
         run_mndo(mol)
-        
+    w = np.ones(np.sum(structures+n_geoms)-1) 
+    s = 0
+    for mol in range(n_molec):
+        for weight in weights[mol]:
+            if weight[0] == '1':
+                w[int(weight[3])-1+s:int(weight[4])-1+s] = w[int(weight[3])-1+s:int(weight[4])-1+s]*int(weight[1])
+            if weight[0] == '2':
+                for i in range(structures[mol]):
+                    if str(i) in weight[3:]:
+                        w[i]+=float(weight[1])
+        s += structures[mol]
+    for mol in range(n_molec):
+        for geom in geoms[mol]:
+            w[s] = w[s]*int(geom[-1])
+            s += 1      
     energies = read_energies(n_molec)
     fvec = (energies-abinitio_energies)*627.51*349.75
     fvec = np.hstack((fvec,comp_geoms(n_molec)))
+    fvec = fvec*w
     return fvec, energies
 
 def read_parms(file):
@@ -196,7 +217,7 @@ def write_parms(X):
 
 def big_loop(X):
     write_parms(X)  # Write the current set of parameters to fort.14
-    fvec, energies = calc_fvec()
+    fvec, energies = calc_fvec(structures, weights, n_geoms, geoms)
     if np.sum(n_geoms) > 0:
         print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
     else:
@@ -210,7 +231,7 @@ def clear_files():
 
 
 
-method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms = read_input('main.inp')
+method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms, n_weights, weights = read_input('main.inp')
 abinitio_energies = read_abinito(energy_files)
 parm_labels, parm_vals = read_parms(sys.argv[1])
 for mol in range(n_molec):
@@ -221,14 +242,14 @@ for mol in range(n_molec):
                                                  
 x, flag = leastsq(big_loop, parm_vals,epsfcn=1e-4)
 big_loop(x)
-fvec, energies = calc_fvec()
+fvec, energies = calc_fvec(structures, weights, n_geoms, geoms)
 if np.sum(n_geoms) > 0:
     print  ('FINAL RMSD ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
 else:
     print  ('FINAL RMSD  ' + str(np.sqrt(np.mean(np.square(fvec)))))
 plt.plot(energies)
 plt.plot(abinitio_energies)
-plt.savefig('test.png')
+plt.savefig('test.png', dpi=300)
 
 
 

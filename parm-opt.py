@@ -9,6 +9,7 @@ from scipy.optimize import leastsq
 method_dict = {'PM3':-7,'AM1':-2, 'RM1':-2, 'OM1':-5, 'OM2':-6, 'OM3':-8,'ODM2':-22, 'ODM3':-23}
             
 at_num_dict = {'h':1, 'he':2, 'li':3, 'be':4, 'b':5,'c':6, 'n':7, 'o':8, 'f':9}
+at_sym_dict = {1:"H", 2:"He", 3:"Li", 4:"Be", 5:"B", 6:"C", 7:"N",8:"O", 9:"F"}
 
 def write_input (file, n_struc, n_atoms, at_nums, method_num, mol_num, charge):
     read_file = open(file[0],'r')
@@ -204,32 +205,214 @@ def big_loop(X):
 #      (f'RMSD {627.51*349.75*np.sqrt(np.mean(np.square(fvec)))}')   
     return fvec
 
+def ev_to_hartree(energies):
+    new_energies = [energy/27.2114 for energy in energies]
+    return new_energies
+
+def zero_energy(endData):
+    energies = np.array(endData) 
+    energies -= np.min(energies)
+    return energies
+
+def anp_int_spec(energies,n_atoms,at_num,input_file):
+    anpass_header,anpass_footer,intder_header1,intder_header2,spectro_template,dispDat = read_templates(input_file)
+    
+    energies = zero_energy(energies)
+    iterData = iter(energies) 
+    anpassInput = open("xtb-Anpass","w")
+    with open(anpass_header,"r") as readHeader: #read header
+        header = readHeader.readlines()
+    for line in header:
+        anpassInput.write(line) #write header
+    with open(dispDat) as displacement:
+        disp = displacement.readlines()
+    for line in disp:
+        anpassInput.write(f"{line.rstrip()}{next(iterData):20.12f}\n")
+    with open(anpass_footer,"r") as foot: #read footer
+        footer = foot.readlines()
+    for line in footer:
+        anpassInput.write(line) 
+    anpassInput.close()
+    os.system("/home/freu9584/bin/anpass-fit.e <xtb-Anpass> Anpass1.out")
+    
+    secondInput = open("AnpassSecond","w") 
+    with open('xtb-Anpass',"r") as copyFile:
+        anpassLines = copyFile.readlines()
+    for line in anpassLines[:-4]:
+        secondInput.write(line)
+    secondInput.write(f"STATIONARY POINT\n")
+    with open("fort.983","r") as statPoint:
+        statData = statPoint.readline()
+    secondInput.write(statData)
+    secondInput.write(f"END OF DATA\n!FIT\n!END\n")
+    secondInput.close()
+    os.system(f"/home/freu9584/bin/anpass-fit.e <AnpassSecond> Anpass2.out")
+    
+    outputFile = open('IntderFile',"w")
+    with open(intder_header1,"r") as headerFile:
+        header = headerFile.readlines()
+    data = list(map(lambda u:float(u),statData.split()[:-1]))
+    disps = []
+    for l in data:
+        if l != 0.0:
+            disps.append(l)
+    for line in header[:-3]:
+        outputFile.write(line)
+        if "DISP" in line: break
+    for t in range(len(disps)) :
+        outputFile.write(f"{t+1: 5}{disps[t]:22.12f}\n")
+    outputFile.write(f"    0\n")
+    outputFile.close()
+    os.system("/home/freu9584/bin/Intder2005.e <IntderFile> Intder.out")
+    
+    end_file = open("IntderFile2","w")
+    with open(intder_header2,"r") as headerFile:
+        header = headerFile.readlines()
+    countModes =0
+    for line in header:
+        if countModes >=3 and not line[0].isalpha():
+            break
+        countModes+=1
+        end_file.write(line)
+    for line in header[countModes:(2*countModes)-1]:
+        end_file.write(line)
+    with open('Intder.out',"r") as geomFile:
+        geometry = geomFile.readlines()
+    for line in geometry[-n_atoms:]:
+        numbers = line.split()
+        end_file.write(f"{float(numbers[0]):18.10f}{float(numbers[1]):19.10f}{float(numbers[2]):19.10f}\n")
+    end_file.write(header[2*countModes-1+n_atoms])
+
+    os.system("/home/freu9584/c-c4/sort_fort.sh")
+
+    with open("sorted_fort.9903","r") as symmetryFile:
+        symmetry = symmetryFile.readlines()
+    columnCounter = 2 
+    begin = False
+    for line in symmetry[:]: 
+        if begin == True:
+            tempLine = line.split()
+            if not(columnCounter == 4) and not(tempLine[columnCounter]=="0"):
+                columnCounter+=1
+                end_file.write(f"    0\n")
+            end_file.write(line)
+        elif len(line.split()) ==1:
+            begin = True
+    end_file.write(f"    0\n")
+    end_file.close()
+    os.system("/home/freu9584/bin/Intder2005.e <IntderFile2> Intder2.out")
+    
+    spectroFile = open("SpectroFile","w")
+    atomicNumIter = iter(at_num)
+    with open(spectro_template,"r") as templateFile:
+        template = templateFile.readlines()
+    for line in template[:5]:
+        spectroFile.write(line)
+    with open("Intder2.out","r") as geomFile:
+        geom = geomFile.readlines()
+    for line in geom[16:16+n_atoms]:
+        numbers = line.split()
+        spectroFile.write(f"{next(atomicNumIter):5.2f}{float(numbers[0]):19.10f}{float(numbers[1]):19.10f}{float(numbers[2]):19.10f}\n")
+    for line in template[5+n_atoms:]:
+        spectroFile.write(line)
+    spectroFile.close()
+    
+    num = iter([[15,15],[20,30],[24,40]])
+    for p in range(3):
+        files = next(num)
+        with open(f"file{files[0]}","r") as originalFile:
+            original = originalFile.readlines()
+        copy = open(f"fort.{files[1]}","w")
+        for line in original:
+            copy.write(line)
+        copy.close()
+    os.system("/home/freu9584/bin/spectro.e <SpectroFile> Spectro.out")
+
+def xtb_method(n_atoms, charge, structures, structure_file,at_nums):
+    
+    moleculeName = structure_file.replace("geometries","")[:-4]
+    
+    os.system(f"mkdir inputs") #making inputs folder
+    
+    with open(structure_file,"r") as geomfile:
+        lines = geomfile.readlines()
+    padding_zeros = len(str(structures)) # calculate the number of padding zeroes needed from the number of molecules
+    first =1
+    last =n_atoms+1
+    
+    for mol in range(structures):
+        current_file = open(os.path.join("inputs",f"{moleculeName}-coord{mol:0{padding_zeros}}.dat"),"w") 
+        # formatted strings allow for added variables in the string. 
+        atom_count = -1
+        current_file.write("$coord\n")
+        for line in lines[first:last]:
+            if line[0] !="#":
+                atom_count += 1
+                current_file.write(line.strip()+" "+ at_sym_dict[at_nums[atom_count]]+"\n")
+        current_file.write("$end\n")
+        first = last+1
+        last = first+n_atoms
+        current_file.close()
+    
+    endData = []
+    os.system(f"echo {charge} > .CHRG")# specifying the charge of the molecule before running xtb
+    for mol in range(structures):
+        in_file = os.path.join("inputs",f"{moleculeName}-coord{mol:0{padding_zeros}}.dat")
+        output_name = os.path.join("inputs",'output')
+        os.system(f"xtb {in_file} > {output_name}")
+        with open(output_name,"r") as output:
+            out_lines = output.readlines()
+        for line in out_lines:
+            if ("TOTAL ENERGY" in line):
+                endData.append(float(line.split()[3]))
+    return endData
+
+def read_templates(input_file):
+    with open(input_file,"r") as file_lines:
+        lines = file_lines.readlines()
+    anpass_header    = lines[0].rstrip()
+    anpass_footer    = lines[1].rstrip()
+    intder_header1   = lines[2].rstrip()
+    intder_header2   = lines[3].rstrip()
+    spectro_template = lines[4].rstrip()
+    dispDat          = lines[5].rstrip()
+    return anpass_header,anpass_footer,intder_header1,intder_header2,spectro_template,dispDat
 
 def clear_files():
     os.system('rm mol* fort* opt*')   
 
 
 
-method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms = read_input('main.inp')
+method_num,n_molec,n_atoms,charge,structures,energy_files,structure_files,at_num,coords,n_geoms,geoms = read_input('main.inp')
 abinitio_energies = read_abinito(energy_files)
-parm_labels, parm_vals = read_parms(sys.argv[1])
-for mol in range(n_molec):
-    write_input(structure_files[mol],
-                structures[mol],
-                n_atoms[mol],at_num[mol],
-                method_num, mol, charge[mol])
-                                                 
-x, flag = leastsq(big_loop, parm_vals,epsfcn=1e-4)
-big_loop(x)
-fvec, energies = calc_fvec()
-if np.sum(n_geoms) > 0:
-    print  ('FINAL RMSD ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
+energies = []
+sturcture_files = np.array(structure_files)
+if method_num == -14:
+    for mol in range(n_molec):
+        energies.append(xtb_method(n_atoms[mol], charge[mol], structures[mol], structure_files[mol][0],at_num[mol]))
 else:
-    print  ('FINAL RMSD  ' + str(np.sqrt(np.mean(np.square(fvec)))))
-plt.plot(energies)
-plt.plot(abinitio_energies)
-plt.savefig('test.png')
+    parm_labels, parm_vals = read_parms(sys.argv[1])
+    for mol in range(n_molec):
+        write_input(structure_files[mol],
+                    structures[mol],
+                    n_atoms[mol],at_num[mol],
+                    method_num, mol, charge[mol])
+                                                 
+    x, flag = leastsq(big_loop, parm_vals,epsfcn=1e-4)
+    big_loop(x)
+    fvec, energies = calc_fvec()
+    if np.sum(n_geoms) > 0:
+        print  ('FINAL RMSD ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
+    else:
+        print  ('FINAL RMSD  ' + str(np.sqrt(np.mean(np.square(fvec)))))
+    energies = np.array(map(ev_to_hartrees(),energies))
+    plt.plot(energies)
+    plt.plot(ev_to_hartree(abinitio_energies))
+    plt.savefig('test.png')
+    
+input_file = ["templates.txt"]
 
-
+for n, energy in enumerate(energies):
+    anp_int_spec(energy,n_atoms[n],at_num[n],input_file[n])
 
 #main()

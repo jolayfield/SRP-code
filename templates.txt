@@ -1,0 +1,6 @@
+/home/freu9584/anpass.header
+/home/freu9584/anpass1.footer
+/home/freu9584/new-geom.in
+/home/freu9584/intder.in
+/home/freu9584/spectro2a.in
+/home/freu9584/disp.dat

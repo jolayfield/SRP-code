@@ -1,12 +1,13 @@
 27   ! # of parameters
-PM3  ! Electronic structure method
-1    ! # of molecules 
+XTB  ! Electronic structure method PM3
+1   ! # of molecules 
 5                                                             ! List of numbers of atoms
 0                                                             ! [MOL 1]  charge
 1585 						              ! [MOL 1]  # of structures
-c-c3h2energies.dat                          ! [MOL 1] file with energies
-c-c3h2geometries.dat   1				           	      ! [MOL 1] file with geometries
- c      0.0000000000        0.0000000000       -1.6748602618
+/home/freu9584/SRP-code/c-c3h2energies.dat                          ! [MOL 1] file with energies
+/home/freu9584/SRP-code/c-c3h2geometries.dat   1				           	      ! [MOL 1] file with geometries
+/home/freu9584/SRP-code/templates.txt                         ![MOL 1]templates for energy calcs
+ c      0.0000000000        0.0000000000       -1.6748602618    ! [MOL 1] Ab initio Optimized Geometry
  c      0.0000000000        1.2498606583        0.6938823314
  c      0.0000000000       -1.2498606583        0.6938823314
  h      0.0000000000        3.0101760989        1.7091990571

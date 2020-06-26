@@ -1,6 +1,7 @@
-/home/freu9584/anpass.header
-/home/freu9584/anpass1.footer
-/home/freu9584/new-geom.in
-/home/freu9584/intder.in
-/home/freu9584/spectro2a.in
-/home/freu9584/disp.dat
+/home/freu9584/c-c3h2/anpass.header
+/home/freu9584/c-c3h2/anpass1.footer
+/home/freu9584/c-c3h2/new-geom.in
+/home/freu9584/c-c3h2/intder.in
+/home/freu9584/c-c3h2/spectro.in
+/home/freu9584/c-c3h2/disp.dat
+cC3H2

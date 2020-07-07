@@ -177,7 +177,7 @@ def read_abinito(energy_files):
 def calc_fvec(structures, weights, n_geoms, geoms):
     for mol in range(n_molec):
         run_mndo(mol)
-    w = np.ones(np.sum(structures+n_geoms)-1) 
+    w = np.ones(np.sum(structures+n_geoms)) 
     s = 0
     for mol in range(n_molec):
         for weight in weights[mol]:
@@ -185,7 +185,7 @@ def calc_fvec(structures, weights, n_geoms, geoms):
                 w[int(weight[3])-1+s:int(weight[4])-1+s] = w[int(weight[3])-1+s:int(weight[4])-1+s]*int(weight[1])
             if weight[0] == '2':
                 for i in range(structures[mol]):
-                    if str(i) in weight[3:]:
+                    if str(i) in weight[2:]:
                         w[i]+=float(weight[1])
         s += structures[mol]
     for mol in range(n_molec):
@@ -195,6 +195,7 @@ def calc_fvec(structures, weights, n_geoms, geoms):
     energies = read_energies(n_molec)
     fvec = (energies-abinitio_energies)*627.51*349.75
     fvec = np.hstack((fvec,comp_geoms(n_molec)))
+    print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec)))))
     fvec = fvec*w
     return fvec, energies
 
@@ -218,10 +219,10 @@ def write_parms(X):
 def big_loop(X):
     write_parms(X)  # Write the current set of parameters to fort.14
     fvec, energies = calc_fvec(structures, weights, n_geoms, geoms)
-    if np.sum(n_geoms) > 0:
-        print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
-    else:
-        print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec)))))
+    # if np.sum(n_geoms) > 0:
+        # print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
+    #else:
+       # print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec)))))
 #      (f'RMSD {627.51*349.75*np.sqrt(np.mean(np.square(fvec)))}')   
     return fvec
 

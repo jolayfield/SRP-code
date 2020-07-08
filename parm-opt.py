@@ -60,7 +60,6 @@ def read_input(file):
     energy_files=[]
     structure_files = []
     n_geoms=[]
-    templates = []
     at_num=[[] for x in range(n_molec)]
     coords=[[] for x in range(n_molec)]
     geoms=[[] for x in range(n_molec)]
@@ -73,22 +72,21 @@ def read_input(file):
         structures.append(int(lines[n+2].split()[0])) # set the number of structures
         energy_files.append(lines[n+3].split()[0])  # set the file to find the energies
         structure_files.append([lines[n+4].split()[0],int(lines[n+4].split()[1])])# set the filename for the structures (the second flag is for atomic units = 1 or angstroms =0)
-        templates.append(lines[n+5].split()[0])
         if (structure_files[mol][1] == 1):
             scale = 0.529
         else:
             scale = 1.
         for atom in range(n_atoms[mol]):
-            line = lines[n+6+atom].split()
+            line = lines[n+5+atom].split()
             check = np.array(line[1:4],dtype=float)
             at_num[mol].append(at_num_dict[line[0].lower()])
             coords[mol].append(np.array([x*scale for x in check]))
-        n_geoms.append(int(lines[n+6+n_atoms[mol]].split()[0])) #set the number of geometry calculations
+        n_geoms.append(int(lines[n+5+n_atoms[mol]].split()[0])) #set the number of geometry calculations
         for geom in range(n_geoms[mol]):
-            geoms[mol].append(lines[n+7+n_atoms[mol]+geom].split())
-        n += n_atoms[mol]+7+n_geoms[mol]
+            geoms[mol].append(lines[n+6+n_atoms[mol]+geom].split())
+        n += n_atoms[mol]+6+n_geoms[mol]
         
-    return method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms, templates
+    return method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms
 
 def run_mndo(mol_num):
     os.system(f'mndo99 < mol{mol_num}.inp > mol{mol_num}.out')
@@ -170,9 +168,12 @@ def read_abinito(energy_files):
         energies = np.hstack((energies,((np.array(energy)-np.min(energy)))))
     return np.array(energies)
 
-def calc_fvec():
-    for mol in range(n_molec):
-        run_mndo(mol)
+def calc_fvec(method):
+    if method == -14:
+        #xtb
+    else:
+        for mol in range(n_molec):
+            run_mndo(mol)
         
     energies = read_energies(n_molec)
     fvec = (energies-abinitio_energies)*627.51*349.75
@@ -196,9 +197,9 @@ def write_parms(X):
         for i,line in enumerate(parm_labels):
             f.write(line[0]+'   '+line[1]+ ' ' +str(X[i])+'\n')
 
-def big_loop(X):
+def big_loop(X,method):
     write_parms(X)  # Write the current set of parameters to fort.14
-    fvec, energies = calc_fvec()
+    fvec, energies = calc_fvec(method)
     if np.sum(n_geoms) > 0:
         print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
     else:
@@ -220,8 +221,16 @@ def anp_int_spec(energies,n_atoms,at_num,input_file):
     energies = zero_energy(energies)
     iterData = iter(energies) 
     
-    anpass_header,anpass_footer,intder_header1,intder_header2,spectro_template,dispDat,folderName = read_templates(input_file)
-    os.chdir(folderName)
+    anpass_header    = "../anpass.header"
+    anpass_footer    = "../anpass1.footer"
+    intder_header1   = "../new-geom.in"
+    intder_header2   = "../intder.in"
+    spectro_template = "../spectro.in"
+    dispDat          = "../disp.dat"
+    fileName = "freq_files"
+   
+    os.mkdir(fileName)
+    os.chdir(fileName)
     
     anpassInput = open("xtb-Anpass","w")
     with open(anpass_header,"r") as readHeader: #read header
@@ -333,15 +342,12 @@ def anp_int_spec(energies,n_atoms,at_num,input_file):
         copy.close()
     os.system("/home/freu9584/bin/spectro.e <SpectroFile> Spectro.out")
     os.chdir("..")
-    os.chdir("..")
 
 def xtb_method(n_atoms, charge, structures, structure_file, at_nums, template):
     
-    moleculeName = template.split("/")[-1]
-    
-    os.system(f"mkdir {moleculeName}/in_out_files")
-    input_path = os.path.join(moleculeName,"in_out_files","inputs")
+    input_path = "xtb_files"
     os.system(f"mkdir {input_path}") #making inputs folder
+    moleculeName = os.getcwd().split("/")[-2]
     
     with open(os.path.join(moleculeName,structure_file),"r") as geomfile:
         lines = geomfile.readlines()
@@ -376,53 +382,10 @@ def xtb_method(n_atoms, charge, structures, structure_file, at_nums, template):
                 endData.append(float(line.split()[3]))
     return endData
 
-def read_templates(input_folder):
-    anpass_header    = os.path.join(os.getcwd(),input_folder,"anpass.header")
-    anpass_footer    = os.path.join(os.getcwd(),input_folder,"anpass1.footer")
-    intder_header1   = os.path.join(os.getcwd(),input_folder,"new-geom.in")
-    intder_header2   = os.path.join(os.getcwd(),input_folder,"intder.in")
-    spectro_template = os.path.join(os.getcwd(),input_folder,"spectro.in")
-    dispDat          = os.path.join(os.getcwd(),input_folder,"disp.dat")
-    molFolder        = os.path.join(input_folder,"in_out_files")
-    return anpass_header,anpass_footer,intder_header1,intder_header2,spectro_template,dispDat,molFolder
-
 def clear_files():
     os.system('rm mol* fort* opt*')   
 
-def check_files(folder,energy,structure,n_mol,n_str):
-    fileList = ["spectro.in","anpass.header","anpass1.footer","new-geom.in","disp.dat","intder.in"]
-    message = "\n"
-    errors = False
-    for h in range(n_mol):
-        message += (f"  --{folder[h]} Errors--\n")
-        #is disp.dat longer than n_str
-        if not os.path.isfile(os.path.join(folder[h],"disp.dat")):
-            errors = True
-            message += (f"disp.dat does not exist in the {folder[h]} folder.\n")
-        else:
-            testlines =[]
-            with open(os.path.join(folder[h],"disp.dat"),"r") as test:
-                testlines = test.readlines()
-            if n_str[h] != len(testlines):
-                errors = True
-                message += (f"disp.dat does not have the correct number of lines. Add {n_str[h]-len(testlines)} lines.\n")
-        #do the files in fileList exist in folder
-        for name in fileList:
-            if not os.path.isfile(os.path.join(folder[h],name)):
-                errors = True
-                message += (f"{name} does not exist in the {folder[h]} folder.\n")
-        #does structure file exist
-        if not os.path.isfile(os.path.join(folder[h],structure[h][0])):
-            errors = True
-            message += (f"{structure[h][0]} does not exist in the {folder[h]} folder.\n")
-        #does energy file exist
-        if not os.path.isfile(os.path.join(folder[h],energy[h])):
-            errors = True
-            message += (f"{energy[h]} does not exist in the {folder[h]} folder.\n")
-    if errors : raise RuntimeError(message)
-
-
-method_num,n_molec,n_atoms,charge,structures,energy_files,structure_files,at_num,coords,n_geoms,geoms,templates = read_input('multi-examples.inp')
+method_num,n_molec,n_atoms,charge,structures,energy_files,structure_files,at_num,coords,n_geoms,geoms = read_input('main.inp')
 
 sturcture_files = np.array(structure_files)
 check_files(templates,energy_files,structure_files,n_molec,structures)
@@ -431,7 +394,7 @@ energies = []
 
 if method_num == -14:
     for mol in range(n_molec):
-        energies.append(xtb_method(n_atoms[mol], charge[mol], structures[mol], structure_files[mol][0],at_num[mol],templates[mol]))
+        energies.append(xtb_method(n_atoms[mol], charge[mol], structures[mol], structure_files[mol][0],at_num[mol]))
 else:
     parm_labels, parm_vals = read_parms(sys.argv[1])
     for mol in range(n_molec):
@@ -441,8 +404,8 @@ else:
                     method_num, mol, charge[mol])
                                                  
     x, flag = leastsq(big_loop, parm_vals,epsfcn=1e-4)
-    big_loop(x)
-    fvec, energies = calc_fvec()
+    big_loop(x,method_num)
+    fvec, energies = calc_fvec(method_num)
     if np.sum(n_geoms) > 0:
         print  ('FINAL RMSD ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
     else:
@@ -453,6 +416,6 @@ else:
     plt.savefig('test.png')
 
 for n, energy in enumerate(energies):
-    anp_int_spec(energy,n_atoms[n],at_num[n],templates[n])
+    anp_int_spec(energy,n_atoms[n],at_num[n])
 
 #main()

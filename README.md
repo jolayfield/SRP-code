@@ -5,4 +5,3 @@ The inputs for the code include:
 * Initial Parameters of the electronic-structure method (semi-empirical NDDO method or tight-binding method)
 * Geometries uses to create vibrational potential-energy surface
 * *Ab initio* energies for the molecule that correspond to each of the geometries found in the above file
-* 

@@ -1,11 +1,12 @@
 27   ! # of parameters
-PM3  ! Electronic structure method
+XTB  ! Electronic structure method
 2    ! # of molecules 
 5                                                             	! List of Numbers of atoms
 0                                                             	! [MOL 1] Charge
 1585 						              						! [MOL 1] # of structures
 c3h2energies.dat                         						! [MOL 1] Energy File
-c3h2geom.dat   1				           	      				! [MOL 1] Geometry File (a.u. flag)
+c3h2geometries.dat   1				           	      				! [MOL 1] Geometry File (a.u. flag)
+templates.txt                                                   ! [MOL 1] Templates
  c      0.0000000000        0.0000000000       -1.6748602618    ! [MOL 1] Ab initio Optimized Geometry
  c      0.0000000000        1.2498606583        0.6938823314
  c      0.0000000000       -1.2498606583        0.6938823314
@@ -14,11 +15,11 @@ c3h2geom.dat   1				           	      				! [MOL 1] Geometry File (a.u. flag)
 4																! [MOL 2] Number of Atoms
 -1 																! [MOL 2] Charge
 743																! [MOL 2] # of Strucutres
-c-c3h-energies.dat												! [MOL 2] Energy File
-c-c3h-geometries.dat 1											! [MOL 2] Geometry File (a.u. flag)
-c       0.0000000000        0.0000000000       -1.6748602618	! [MOL 2] Ab initio Optimized Geometry
-c       0.0000000000        1.2498606583        0.6938823314
-c       0.0000000000       -1.2498606583        0.6938823314
-h       0.0000000000        3.0101760989        1.7091990571
-h       0.0000000000       -3.0101760989        1.7091990571
+/home/freu9584/SRP-code/ABINITIO-DATA/c-c3h-/c-c3h-energies.dat								! [MOL 2] Energy File
+/home/freu9584/SRP-code/ABINITIO-DATA/c-c3h-/c-c3h-geometries.dat 1							! [MOL 2] Geometry File (a.u. flag)
+templates2.txt                                                   ! [Mol 2] Templates
+    h   0.0000000000        0.0000000000       -3.4118348686
+    c   0.0000000000        0.0000000000       -1.3606952513
+    c   0.0000000000        1.4070998275        0.8236198167
+    c   0.0000000000       -1.4070998275        0.8236198167
 0               												!  Weights 

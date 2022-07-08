@@ -24,10 +24,10 @@ def write_input (file, n_struc, n_atoms, at_nums, method_num, mol_num, charge):
     for structure in range(n_struc):
         if(structure == 0):
                     opt_file = open(f'opt{mol_num}.inp','w')
-                    opt_file.write(f'iparok=1 nsav15=9 nprint=-4 kharge={charge} iform=1 iop={method_num} jop=0 igeom=1\n')
+                    opt_file.write(f'iparok=1 iscf=7 iplscf=7 nsav15=9 kharge={charge} iform=1 iop={method_num} jop=0 igeom=1\n')
                     opt_file.write(f'Molecule {mol_num} Optimization\n\n')
         n +=1
-        write_file.write(f'iparok=1 nsav15=9 nprint=-4 kharge={charge} iform=1 iop={method_num} jop=-1 igeom=1\n')
+        write_file.write(f'iparok=1 iscf=7 iplscf=7 nsav15=9 kharge={charge} iform=1 iop={method_num} jop=-1 igeom=1\n')
         write_file.write("Molecule #"+str(structure)+"\n\n")
         for atom in range(n_atoms):
             if(structure == 0):
@@ -154,12 +154,12 @@ def read_energies(n_molec):
     energies=[]
     for mol in range(n_molec):
         energy = []
-        with open(f'mol{mol}.out','r') as f:
+        with open(f'mol{mol}.aux','r') as f:
             data = f.readlines()
         for n,line in enumerate(data):
-            if "SCF TOTAL ENERGY" in line:
-                energy.append(float(line.split()[3]))
-        energies = np.hstack((energies,((np.array(energy)-np.min(energy))/27.2114)))
+            if "ENERGY" in line:
+                energy.append(float(data[n+1].split()[0]))
+        energies = np.hstack((energies,((np.array(energy)-np.min(energy))/627.50956)))
     return np.array(energies)
 
 def read_abinito(energy_files):  
@@ -218,11 +218,6 @@ def write_parms(X):
 def big_loop(X):
     write_parms(X)  # Write the current set of parameters to fort.14
     fvec, energies = calc_fvec(structures, weights, n_geoms, geoms)
-    # if np.sum(n_geoms) > 0:
-        # print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
-    #else:
-       # print  ('rmsd  ' + str(np.sqrt(np.mean(np.square(fvec)))))
-#      (f'RMSD {627.51*349.75*np.sqrt(np.mean(np.square(fvec)))}')   
     return fvec
 
 
@@ -240,7 +235,7 @@ for mol in range(n_molec):
                 n_atoms[mol],at_num[mol],
                 method_num, mol, charge[mol])
                                                  
-x, flag = leastsq(big_loop, parm_vals,epsfcn=float(sys.argv[2]))
+x, flag = leastsq(big_loop, parm_vals, epsfcn=float(sys.argv[2]))
 big_loop(x)
 fvec, energies = calc_fvec(structures, weights, n_geoms, geoms)
 if np.sum(n_geoms) > 0:

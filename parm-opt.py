@@ -3,7 +3,7 @@ import os
 import sys
 import matplotlib.pyplot as plt
 import math
-from scipy.optimize import leastsq
+from scipy.optimize import least_squares
 
 method_dict = {'PM3':-7,'AM1':-2, 'RM1':-2, 'OM1':-5, 'OM2':-6, 'OM3':-8,'ODM2':-22, 'ODM3':-23}
             
@@ -203,12 +203,22 @@ def read_parms(file):
             data = f_in.readlines() 
     parm_labels = []
     parm_vals   = []
+    lb = []
+    ub = []
     for line in data:
         if len(line.split()) == 0:
             break
         parm_labels.append(line.split()[0:2])
         parm_vals.append(float(line.split()[2]))
-    return parm_labels, parm_vals
+        parm_val= float(line.split()[2])
+        if parm_val > 0:
+            lb.append(parm_val*0.5)
+            ub.append(parm_val*1.5)
+        else:
+            ub.append(parm_val*0.5)
+            lb.append(parm_val*1.5)
+    bounds = (lb,ub)
+    return parm_labels, parm_vals, bounds
 
 def write_parms(X):
     with open('fort.14','w') as f:
@@ -228,20 +238,25 @@ def clear_files():
 
 method_num, n_molec, n_atoms, charge, structures, energy_files, structure_files, at_num, coords, n_geoms, geoms, n_weights, weights = read_input('main.inp')
 abinitio_energies = read_abinito(energy_files)
-parm_labels, parm_vals = read_parms(sys.argv[1])
+parm_labels, parm_vals, bounds = read_parms(sys.argv[1])
+\
+print(bounds)
+
 for mol in range(n_molec):
     write_input(structure_files[mol],
                 structures[mol],
                 n_atoms[mol],at_num[mol],
                 method_num, mol, charge[mol])
                                                  
-x, flag = leastsq(big_loop, parm_vals, epsfcn=float(sys.argv[2]))
-big_loop(x)
+x = least_squares(big_loop, parm_vals)#, bounds=bounds)
+
+print(x)
+
 fvec, energies = calc_fvec(structures, weights, n_geoms, geoms)
 if np.sum(n_geoms) > 0:
     print  ('FINAL RMSD ' + str(np.sqrt(np.mean(np.square(fvec[0:-np.sum(n_geoms)])))))
 else:
     print  ('FINAL RMSD  ' + str(np.sqrt(np.mean(np.square(fvec)))))
 plt.plot(energies)
-plt.plot(abinitio_energies)
+plt.plot(abinitio_energies,alpha=0.7)
 plt.savefig('test.png', dpi=300)
